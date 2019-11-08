@@ -1,9 +1,9 @@
 {
     "enabled": true,
-    "revert": true,
+    "revert": false,
     "length": {
-        "min": 10,
-        "max": 80
+        "min": 15,
+        "max": 100
     },
     "types": [
         "build",
