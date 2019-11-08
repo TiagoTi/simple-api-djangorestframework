@@ -31,36 +31,36 @@ Na raiz do projeto crie o arquivo de configuração das regras permitidas::
 
 Vamos renomear o arquivo **.git/hooks/commit-msg.sample** para **.git/hooks/commit-msg** e adicionar o seguinte conteudo::
 
-  #!/bin/bash
+  #!/bin/zsh
 
   CONFIG=commit-msg.config.json
   if [ ! -f $CONFIG ]; then
-  	echo "Não foi encontrado o arquivo $CONFIG"
-  	echo "Crie um na raiz do projeto para poder commitar"
-  	exit 1
+    echo "Não foi encontrado o arquivo $CONFIG"
+    echo "Crie um na raiz do projeto para poder commitar"
+    exit 1
   fi
 
   ENABLED=$(jq -r .enabled $CONFIG)
   if [ ! $ENABLED = true ]; then
-  	echo "Ative as configurações no arquivo $CONFIG"
-  	exit 1
+    echo "Ative as configurações no arquivo $CONFIG"
+    exit 1
   fi
 
 
   REVERT=$(jq -r .revert $CONFIG)
-  TYPES=$(jq -r '.types[]' $CONFIG)
+  TYPES=($(jq -r '.types[]' $CONFIG))
   MIN_LENGTH=$(jq -r .length.min $CONFIG)
   MAX_LENGTH=$(jq -r .length.max $CONFIG)
 
   REGEX="^("
 
   if $REVERT; then
-      REGEX="${REGEX}revert: )?(\w+)("
+    REGEX="${REGEX}revert: )?(\w+)("
   fi
 
   for TYPE in $TYPES;
   do
-      REGEX="${REGEX}$TYPE|"
+    REGEX="${REGEX}$TYPE[@]|"
   done
 
   REGEX="${REGEX})(\(.+\))?: "
@@ -68,7 +68,9 @@ Vamos renomear o arquivo **.git/hooks/commit-msg.sample** para **.git/hooks/comm
   REGEX="${REGEX}.{$MIN_LENGTH,$MAX_LENGTH}$"
 
   MSG=$(head -1 $1)
-  if [[ ! $MSG =~ $REGEX ]]; then
+
+  if ! [[  $MSG =~ $REGEX ]]
+  then
     echo -e "\n\e[1m\e[31m[INVALID COMMIT MESSAGE]"
     echo -e "------------------------\033[0m\e[0m"
     echo -e "\e[1mValid types:\e[0m \e[34m${TYPES[@]}\033[0m"
